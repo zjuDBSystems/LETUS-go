@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"letus/letus"
+	"github.com/fishfishfishfishfish/LETUS-go"
 )
 
 func main() {
