@@ -5,7 +5,7 @@ import (
     "encoding/hex"
     "fmt"
 	"unsafe"
-	"letus/types"
+	"github.com/fishfishfishfishfish/LETUS-go/types"
 )
 /*
 #cgo CFLAGS: -I${SRCDIR}/../../lib
