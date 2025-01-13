@@ -8,8 +8,8 @@ import (
 	"github.com/fishfishfishfishfish/LETUS-go/types"
 )
 /*
-#cgo CFLAGS: -I${SRCDIR}/../../lib
-#cgo LDFLAGS: -L${SRCDIR}/../../build_release -lletus -lssl -lcrypto -lstdc++
+#cgo CFLAGS: -I${SRCDIR}
+#cgo LDFLAGS: -L${SRCDIR} -lletus -lssl -lcrypto -lstdc++
 #include "Letus.h"
 #include <stdio.h>
 #include <stdlib.h>
