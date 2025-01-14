@@ -4,7 +4,7 @@
 ![Language](https://img.shields.io/badge/Language-Go-blue)
 
 
-This repositary provides a go-wrapper for LETUS_prototype.
+This repositary provides a go-wrapper for [LETUS_prototype](https://github.com/zjuDBSystems/LETUS_prototype).
 LETUS_prototype is a prototype implementation of [LETUS: A Log-Structured Efficient Trusted Universal BlockChain Storage](https://doi.org/10.1145/3626246.3653390).
 LETUS is a <u>**L**</u>og-structured <u>**E**</u>fficient <u>**T**</u>rusted <u>**U**</u>niversal <u>**S**</u>torage for blockchain, providing cryptographic tamper evidence with excellent performance and resource efficiency.
 LETUS is made up of three main components: DMM-Trie, LSVPS, VDLS.
@@ -19,6 +19,7 @@ The following figure shows the architecture of LETUS.
 Developers are required to install the following dependencies:
 * [Go](https://golang.org/) >= 1.21
 * [OpenSSL](https://www.openssl.org/) >= 3.0.14
+* libssl-dev 1.1.1
 
 
 # Get Started
