@@ -18,8 +18,8 @@ The following figure shows the architecture of LETUS.
 ## Dependencies
 Developers are required to install the following dependencies:
 * [Go](https://golang.org/) >= 1.21
-* [OpenSSL](https://www.openssl.org/) >= 3.0.14
-* libssl-dev 1.1.1
+* [OpenSSL](https://www.openssl.org/) >= 1.1
+> Currently, this package is only supported on Ubuntu. Developers can use Dockerfile in [LETUS_prototype](https://github.com/zjuDBSystems/LETUS_prototype/blob/main/Dockerfile) to create a runable environment.
 
 
 # Get Started
