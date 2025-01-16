@@ -28,7 +28,7 @@ To use LETUS_prototype through this go wrapper, developers first need to create 
 $ mkdir test_letus/
 $ cd test_letus
 $ go mod init test_letus
-$ go get github.com/fishfishfishfishfish/LETUS-go/letus
+$ go get github.com/zjuDBSystems/LETUS-go/letus
 $ mkdir data/
 ```
 The above commands will create files `go.mod` and `go.sum`. The project directory should look like this:
@@ -47,14 +47,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/fishfishfishfishfish/LETUS-go/letus"
+	"github.com/zjuDBSystems/LETUS-go/letus"
 )
 
 func main() {
     config := letus.GetDefaultConfig()
-    db, ok := letus.NewLetusKVStroage(config)  // initialize the letus database
+    db, ok := letus.NewLetusKVStorage(config)  // initialize the letus database
     if ok != nil{
-        panic("Failed to create LetusKVStroage")
+        panic("Failed to create LetusKVStorage")
     }
     batch, _ := db.NewBatch()  // create a batch for updates
 

@@ -2,7 +2,7 @@
 package letus
 
 // import "crypto"
-import "github.com/fishfishfishfishfish/LETUS-go/types"
+import "github.com/zjuDBSystems/LETUS-go/types"
 
 // KVStorage is a interface that provides managing k/v.
 type KVStorage interface {

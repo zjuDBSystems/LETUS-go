@@ -46,20 +46,20 @@ type LetusIterator struct{
 }
 
 type LetusLedgerIterator struct {
-	db *LetusKVStroage
+	db *LetusKVStorage
 	current_key []byte
 	begin_key []byte
 	end_key []byte
 }
 
-func NewLetusIterator(db *LetusKVStroage, begin []byte, end []byte) Iterator{
+func NewLetusIterator(db *LetusKVStorage, begin []byte, end []byte) Iterator{
 	it := &LetusIterator{
 		lg: NewLetusLedgerIterator(db, begin, end),
 	}
 	return it
 }
 
-func NewLetusLedgerIterator(db *LetusKVStroage, begin []byte, end []byte) LedgerIterator{
+func NewLetusLedgerIterator(db *LetusKVStorage, begin []byte, end []byte) LedgerIterator{
 	lg := &LetusLedgerIterator{
 		db: db,
 		current_key: begin,
