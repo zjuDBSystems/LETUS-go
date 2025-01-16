@@ -5,7 +5,7 @@ import (
     "encoding/hex"
     "fmt"
 	"unsafe"
-	"github.com/fishfishfishfishfish/LETUS-go/types"
+	"github.com/zjuDBSystems/LETUS-go/types"
 )
 /*
 #cgo CFLAGS: -I${SRCDIR}
@@ -28,17 +28,17 @@ func getCPtr(data []byte) *C.char {
 	return (*C.char)(unsafe.Pointer(&[]byte(string(data))[0]))
 }
 
-// LetusKVStroage is an implementation of KVStroage.
-type LetusKVStroage struct {
+// LetusKVStorage is an implementation of KVStorage.
+type LetusKVStorage struct {
 	c *C.Letus
 	tid uint64
 	stable_seq_no uint64
 	current_seq_no uint64
 }
 
-func NewLetusKVStroage(config *LetusConfig) (KVStorage, error) {
+func NewLetusKVStorage(config *LetusConfig) (KVStorage, error) {
 	path := config.GetDataPath()
-	s := &LetusKVStroage{
+	s := &LetusKVStorage{
 		c: C.OpenLetus(C.CString(path)),
 		tid: 0,
 		stable_seq_no: 0,
@@ -47,14 +47,14 @@ func NewLetusKVStroage(config *LetusConfig) (KVStorage, error) {
 	return s, nil
 }
 
-func (s *LetusKVStroage) Put(key []byte, value []byte) error {
+func (s *LetusKVStorage) Put(key []byte, value []byte) error {
 	sha1key := sha1hash(key)
 	C.LetusPut(s.c, C.uint64_t(s.tid), C.uint64_t(s.current_seq_no), getCPtr(sha1key), getCPtr(value))
 	fmt.Printf("Letus Put! tid=%d, seq=%d, key=%s(%s), value=%s\n", s.tid, s.current_seq_no, string(key), string(sha1key), string(value))
 	return nil
 }
 
-func (s *LetusKVStroage) Get(key []byte) ([]byte, error) {
+func (s *LetusKVStorage) Get(key []byte) ([]byte, error) {
 	var value *C.char
 	sha1key := sha1hash(key)
 
@@ -72,14 +72,14 @@ func (s *LetusKVStroage) Get(key []byte) ([]byte, error) {
 	return []byte(C.GoString(value)), nil
 	}
 	
-func (s *LetusKVStroage) Delete(key []byte) error {
+func (s *LetusKVStorage) Delete(key []byte) error {
 	sha1key := sha1hash(key)
 	C.LetusDelete(s.c, C.uint64_t(s.tid), C.uint64_t(s.current_seq_no), getCPtr(sha1key))
 	fmt.Printf("Letus Delete! tid=%d, seq=%d, key=%s(%s)\n", s.tid, s.current_seq_no, string(key), string(sha1key))
 	return nil 
 }
 
-func (s* LetusKVStroage) Revert(seq_ uint64) error {
+func (s* LetusKVStorage) Revert(seq_ uint64) error {
 	seq := seq_ + 1 
 	fmt.Println("Letus revert! version=", seq)
 	C.LetusRevert(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
@@ -88,14 +88,14 @@ func (s* LetusKVStroage) Revert(seq_ uint64) error {
 	return nil 
 }
 
-func (s* LetusKVStroage) CalcRootHash(seq_ uint64) error { 
+func (s* LetusKVStorage) CalcRootHash(seq_ uint64) error { 
 	seq := seq_ + 1
 	fmt.Println("Letus calculate root hash! version=", seq)
 	C.LetusCalcRootHash(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
 	return nil 
 }
 
-func (s* LetusKVStroage) Write(seq_ uint64) error { 
+func (s* LetusKVStorage) Write(seq_ uint64) error { 
 	seq := seq_ + 1
 	fmt.Println("Letus flush! version=", seq)
 	C.LetusFlush(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
@@ -104,7 +104,7 @@ func (s* LetusKVStroage) Write(seq_ uint64) error {
 	return nil 
 }
 
-func (s* LetusKVStroage) Commit(seq_ uint64) error { 
+func (s* LetusKVStorage) Commit(seq_ uint64) error { 
 	seq := seq_ + 1
 	fmt.Println("Letus commit! version=", seq)
 	C.LetusFlush(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
@@ -112,32 +112,32 @@ func (s* LetusKVStroage) Commit(seq_ uint64) error {
 	return nil 
 }
 
-func (s *LetusKVStroage) Close() error {
+func (s *LetusKVStorage) Close() error {
 	fmt.Println("close Letus!")
 	return nil 
 }
 
-func (s *LetusKVStroage) NewBatch() (Batch, error) {
+func (s *LetusKVStorage) NewBatch() (Batch, error) {
 	return NewLetusBatch(s)
 }
 
-func (s *LetusKVStroage) NewBatchWithEngine() (Batch, error) {
+func (s *LetusKVStorage) NewBatchWithEngine() (Batch, error) {
 	return NewLetusBatch(s)
 }
 
-func (s *LetusKVStroage) NewIterator(begin, end []byte) Iterator {
+func (s *LetusKVStorage) NewIterator(begin, end []byte) Iterator {
 	return NewLetusIterator(s, begin, end)
 }
 
-func (s *LetusKVStroage) GetStableSeqNo() (uint64, error) {
+func (s *LetusKVStorage) GetStableSeqNo() (uint64, error) {
 	return s.stable_seq_no - 1, nil
 }
-func (s *LetusKVStroage) GetSeqNo() (uint64, error) {
+func (s *LetusKVStorage) GetSeqNo() (uint64, error) {
 	return s.current_seq_no - 1, nil
 }
 
 
-func (s *LetusKVStroage) Proof(key []byte, seq_ uint64) (types.ProofPath, error){
+func (s *LetusKVStorage) Proof(key []byte, seq_ uint64) (types.ProofPath, error){
 	seq := seq_ + 1
 	sha1key := sha1hash(key)
 	proof_path_c := C.LetusProof(s.c, C.uint64_t(s.tid), C.uint64_t(seq), getCPtr(sha1key))
@@ -162,8 +162,8 @@ func (s *LetusKVStroage) Proof(key []byte, seq_ uint64) (types.ProofPath, error)
 	return proof_path, nil
 }
 
-// func (s *LetusKVStroage) SetEngine(engine cryptocom.Engine) {}
-func (s *LetusKVStroage) FSync(seq uint64) error { return nil }
+// func (s *LetusKVStorage) SetEngine(engine cryptocom.Engine) {}
+func (s *LetusKVStorage) FSync(seq uint64) error { return nil }
 
 
 type LetusConfig struct {

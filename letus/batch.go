@@ -1,11 +1,11 @@
 package letus
 
 type LetusBatch struct {
-	db *LetusKVStroage
+	db *LetusKVStorage
 	len uint64
 }
 
-func NewLetusBatch(db *LetusKVStroage) (Batch, error) {
+func NewLetusBatch(db *LetusKVStorage) (Batch, error) {
 	b := &LetusBatch{
 		db: db,
 		len: 0,
