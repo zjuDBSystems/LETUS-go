@@ -1,15 +1,11 @@
 package letus
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
-	"fmt"
-	"github.com/bcds/go-hpc-common/cryptocom"
-	"github.com/bcds/go-hpc-common/types"
-	commonutils "github.com/bcds/go-hpc-common/utils"
-	i "github.com/bcds/go-hpc-db-interface"
-	"os"
+    "crypto/sha1"
+    "encoding/hex"
+    "fmt"
 	"unsafe"
+	"github.com/zjuDBSystems/LETUS-go/types"
 )
 
 /*
@@ -167,3 +163,40 @@ func (s *LetusKVStroage) Proof(key []byte, seq_ uint64) (types.ProofPath, error)
 }
 
 func (s *LetusKVStroage) FSync(seq uint64) error { return nil }
+
+
+func (s *LetusKVStorage) FSync(seq uint64) error { return nil }
+
+
+type LetusConfig struct {
+	DataPath      string
+	CheckInterval uint64
+	Compress      bool
+	Encrypt       bool
+	BucketMode    bool
+	VlogSize      uint64
+	sync          bool
+}
+
+
+func GetDefaultConfig() *LetusConfig {
+	DefaultSync := false
+	DefaultEncryption := false
+	DefaultCheckInterval := uint64(100)
+	DefaultDataPath := "./data"
+	DefaultBucketMode := false
+	DefaultVlogSize := uint64(1024 * 1024)
+	return &LetusConfig{
+		sync:          DefaultSync,
+		Encrypt:       DefaultEncryption,
+		Compress:      true,
+		CheckInterval: DefaultCheckInterval,
+		DataPath:      DefaultDataPath,
+		BucketMode:    DefaultBucketMode,
+		VlogSize:      DefaultVlogSize,
+	}
+}
+
+func (v LetusConfig) GetDataPath() string {
+	return v.DataPath
+}
