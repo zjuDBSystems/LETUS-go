@@ -49,7 +49,10 @@ func NewLetusKVStorage(config *LetusConfig) (KVStorage, error) {
 }
 
 func (s *LetusKVStorage) Put(key []byte, value []byte) error {
-	seq := s.current_seq_no + 1
+	seq := 1
+	if s.current_seq_no != math.MaxUint64 {
+		seq = s.current_seq_no + 1
+	}
 	sha1key := sha1hash(key)
 	C.LetusPut(s.c, C.uint64_t(s.tid), C.uint64_t(seq), getCPtr(sha1key), getCPtr(value))
 	fmt.Printf("Letus Put! tid=%d, seq=%d, key=%s(%s), value=%s\n", s.tid, s.current_seq_no, string(key), string(sha1key), string(value))
