@@ -49,7 +49,7 @@ func NewLetusKVStorage(config *LetusConfig) (KVStorage, error) {
 }
 
 func (s *LetusKVStorage) Put(key []byte, value []byte) error {
-	seq := 1
+	seq := uint64(1)
 	if s.current_seq_no != math.MaxUint64 {
 		seq = s.current_seq_no + 1
 	}
