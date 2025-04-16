@@ -35,6 +35,7 @@ type LetusKVStorage struct {
 	tid uint64
 	stable_seq_no uint64
 	current_seq_no uint64
+	hashed_seq_no  uint64
 	logger DefaultLogger
 }
 
@@ -45,6 +46,7 @@ func Open(config VidbConfigInterface, logger DefaultLogger) (KVStorage, error) {
 		tid:            0,
 		stable_seq_no:  math.MaxUint64,
 		current_seq_no: math.MaxUint64,
+		hashed_seq_no:  math.MaxUint64,
 		logger:         logger,
 	}
 	return s, nil
@@ -63,7 +65,10 @@ func (s *LetusKVStorage) Put(key []byte, value []byte) error {
 }
 
 func (s *LetusKVStorage) Get(key []byte) ([]byte, error) {
-	seq := s.current_seq_no // current_seq_no + 1 -1
+	if s.hashed_seq_no == math.MaxUint64 {
+		return nil, errors.New("db not found")
+	}
+	seq := s.hashed_seq_no + 1
 	var value *C.char
 	sha1key := sha1hash(key)
 
@@ -99,7 +104,8 @@ func (s* LetusKVStorage) CalcRootHash(seq_ uint64) error {
 	seq := seq_ + 1
 	s.logger.Infof("Letus calculate root hash! version=%d\n", seq)
 	C.LetusCalcRootHash(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
-	return nil 
+	s.hashed_seq_no = seq_
+	return nil
 }
 
 func (s* LetusKVStorage) Write(seq_ uint64) error { 

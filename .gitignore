@@ -1,3 +1,4 @@
 *.o
 data/
 go.sum
+main

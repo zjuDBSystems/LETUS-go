@@ -189,3 +189,28 @@ type Logger interface {
 }
 ```
 
+
+
+Seq No的变化：
+```go
+
+db.Open()
+GetSeqNo() // MaxUint64
+Put(k="alice", v="1011")
+GetSeqNo() // MaxUint64
+Hash(0)
+GetSeqNo() // MaxUint64
+Get("alice") // 1011
+Write(0)
+GetSeqNo() // 1
+Put(k="alice", v="2222")
+Get("alice") // 1011
+Hash(1)
+Put(k="bob", v="2222")
+Hash(1)
+GetSeqNo() // 1
+Get("alice") // 2222
+Write(1)
+GetSeqNo() // 2
+Get("alice") // 2222
+```
