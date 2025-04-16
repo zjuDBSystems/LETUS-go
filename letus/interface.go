@@ -60,15 +60,10 @@ type Batch interface {
 
 
 type Iterator interface {
-	LedgerIterator() LedgerIterator
 	First() bool
 	Last() bool
 	Prev() bool
 	Error() error
-}
-
-
-type LedgerIterator interface {
 	//Next return true iff we can use Key() or Value() to read valid data
 	Next() bool
 	Key() interface{}
@@ -77,4 +72,15 @@ type LedgerIterator interface {
 	// Seek Targeting the iterator to the first key that not less than the param
 	// return false iff the param is out of the right bound
 	Seek(interface{}) bool
+}
+
+
+type VidbConfigInterface interface {
+	Sync() bool
+	VidbDataPath() string
+	CompressEnable() bool
+	GetBucketMode() bool
+	GetEncrypt() bool
+	GetCheckInterval() uint64
+	GetVlogSize() uint64
 }

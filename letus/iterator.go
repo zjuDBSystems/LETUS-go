@@ -41,86 +41,116 @@ func strCmp(a []byte, b []byte) (bool, error) {
 	}
 }
 
-type LetusIterator struct{
-	lg LedgerIterator
-}
+// type LetusIterator struct {
+// 	lg i.LedgerIterator
+// }
 
-type LetusLedgerIterator struct {
-	db *LetusKVStorage
+// func (it *LetusIterator) Next() bool {
+// 	// TODO implement me
+// 	panic("implement me")
+// }
+
+// func (it *LetusIterator) Key() interface{} {
+// 	// TODO implement me
+// 	panic("implement me")
+// }
+
+// func (it *LetusIterator) Value() []byte {
+// 	// TODO implement me
+// 	panic("implement me")
+// }
+
+// func (it *LetusIterator) Release() {
+// 	// TODO implement me
+// 	panic("implement me")
+// }
+
+// func (it *LetusIterator) Seek(i2 interface{}) bool {
+// 	// TODO implement me
+// 	panic("implement me")
+// }
+
+type LetusIterator struct {
+	db          *LetusKVStorage
 	current_key []byte
 	begin_key []byte
 	end_key []byte
 }
 
-func NewLetusIterator(db *LetusKVStorage, begin []byte, end []byte) Iterator{
+// func NewLetusIterator(db *LetusKVStorage, begin []byte, end []byte) i.Iterator {
+// 	it := &LetusIterator{
+// 		lg: NewLetusLedgerIterator(db, begin, end),
+// 	}
+// 	return it
+// }
+
+func NewLetusIterator(db *LetusKVStorage, begin []byte, end []byte) Iterator {
 	it := &LetusIterator{
-		lg: NewLetusLedgerIterator(db, begin, end),
+		db:          db,
+		current_key: begin,
+		begin_key:   begin,
+		end_key:     end,
 	}
 	return it
 }
 
-func NewLetusLedgerIterator(db *LetusKVStorage, begin []byte, end []byte) LedgerIterator{
-	lg := &LetusLedgerIterator{
-		db: db,
-		current_key: begin,
-		begin_key: begin,
-		end_key: end,
+// func (it *LetusIterator) LedgerIterator() i.LedgerIterator {
+// 	return it.lg
+// }
+
+func (it *LetusIterator) First() bool {
+	if string(it.current_key) == string(it.begin_key){
+		return true
+	} else {
+		return false
 	}
-	return lg
 }
-
-func (it *LetusIterator) LedgerIterator() LedgerIterator{
-	return it.lg
+func (it *LetusIterator) Last() bool {
+	if string(it.current_key) == string(it.end_key){
+		return true
+	} else {
+		return false
+	}
 }
-
-func (it *LetusIterator) First() bool{
-	return true
-}
-func (it *LetusIterator) Last() bool{
-	return true
-}
-func (it *LetusIterator) Prev() bool{
+func (it *LetusIterator) Prev() bool {
 	return it.First()
 }
 
-func (it *LetusIterator) Error() error{
+func (it *LetusIterator) Error() error {
 	return nil
 }
 
-
-func (lg *LetusLedgerIterator) Next() bool {
+func (it *LetusIterator) Next() bool {
 	// get the next key
-	if cmp, _ := strCmp(lg.current_key, lg.end_key); cmp {
-		lg.current_key = keyInc(lg.current_key)
+	if cmp, _ := strCmp(it.current_key, it.end_key); cmp {
+		it.current_key = keyInc(it.current_key)
 		return true
 	}
 	return false
 }
 
-func (lg *LetusLedgerIterator) Key() interface{} {
-	return lg.current_key
+func (it *LetusIterator) Key() interface{} {
+	return it.current_key
 }
 
-func (lg *LetusLedgerIterator) Value() []byte{
-	val, err := lg.db.Get(lg.current_key)
+func (it *LetusIterator) Value() []byte {
+	val, err := it.db.Get(it.current_key)
 	if err != nil {
-		fmt.Println("Value: ", err)
+		// fmt.Println("Value: ", err)
 		return nil
 	}
-	return val 
+	return val
 }
 
-func (lg *LetusLedgerIterator) Release() {}
+func (it *LetusIterator) Release() {}
 
-func (lg *LetusLedgerIterator) Seek(key interface{}) bool{
+func (it *LetusIterator) Seek(key interface{}) bool {
 
-	if cmp, _ := strCmp(key.([]byte), lg.end_key); cmp {
+	if cmp, _ := strCmp(key.([]byte), it.end_key); cmp {
 		return false
-	} else if cmp, _ := strCmp(lg.begin_key, key.([]byte)); cmp {
+	} else if cmp, _ := strCmp(it.begin_key, key.([]byte)); cmp {
 		return false
 	}
-	lg.current_key = key.([]byte)
+	it.current_key = key.([]byte)
 	return true
 }
-
-

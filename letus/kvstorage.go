@@ -4,7 +4,7 @@ import (
     "crypto/sha1"
     "encoding/hex"
 	"math"
-    "fmt"
+	"github.com/pkg/errors"
 	"unsafe"
 	"github.com/zjuDBSystems/LETUS-go/types"
 )
@@ -35,15 +35,17 @@ type LetusKVStorage struct {
 	tid uint64
 	stable_seq_no uint64
 	current_seq_no uint64
+	logger DefaultLogger
 }
 
-func NewLetusKVStorage(config *LetusConfig) (KVStorage, error) {
-	path := config.GetDataPath()
+func Open(config VidbConfigInterface, logger DefaultLogger) (KVStorage, error) {
+	path := config.VidbDataPath()
 	s := &LetusKVStorage{
-		c: C.OpenLetus(C.CString(path)),
-		tid: 0,
-		stable_seq_no: 0,
+		c:              C.OpenLetus(C.CString(path)),
+		tid:            0,
+		stable_seq_no:  math.MaxUint64,
 		current_seq_no: math.MaxUint64,
+		logger:         logger,
 	}
 	return s, nil
 }
@@ -55,7 +57,8 @@ func (s *LetusKVStorage) Put(key []byte, value []byte) error {
 	}
 	sha1key := sha1hash(key)
 	C.LetusPut(s.c, C.uint64_t(s.tid), C.uint64_t(seq), getCPtr(sha1key), getCPtr(value))
-	fmt.Printf("Letus Put! tid=%d, seq=%d, key=%s(%s), value=%s\n", s.tid, seq, string(key), string(sha1key), string(value))
+	s.logger.Infof("Letus Put! tid=%d, seq=%d, key=%s(%s)\n", s.tid, seq, string(key), string(sha1key))
+	// s.logger.Infof("Letus Put! tid=%d, seq=%d, key=%s(%s), value=%s\n", s.tid, seq, string(key), string(sha1key), string(value))
 	return nil
 }
 
@@ -65,42 +68,43 @@ func (s *LetusKVStorage) Get(key []byte) ([]byte, error) {
 	sha1key := sha1hash(key)
 
 	value = C.LetusGet(s.c, C.uint64_t(s.tid), C.uint64_t(seq), getCPtr(sha1key))
-	fmt.Printf("Letus Get! tid=%d, seq=%d, key=%s(%s), value=%s\n", s.tid, seq, string(key), string(sha1key), C.GoString(value))
+	// s.logger.Infof("Letus Get! tid=%d, seq=%d, key=%s(%s), value=%s\n", s.tid, seq, string(key), string(sha1key), C.GoString(value))
+	s.logger.Infof("Letus Get! tid=%d, seq=%d, key=%s(%s)\n", s.tid, seq, string(key), string(sha1key))
 
 		
 	if value == nil || C.GoString(value) == "" {
-		return nil, fmt.Errorf("key not found")
+		return nil, errors.New("db not found")
 	}
 	return []byte(C.GoString(value)), nil
-	}
-	
+}
+
 func (s *LetusKVStorage) Delete(key []byte) error {
 	seq := s.current_seq_no + 1
 	sha1key := sha1hash(key)
 	C.LetusDelete(s.c, C.uint64_t(s.tid), C.uint64_t(seq), getCPtr(sha1key))
-	fmt.Printf("Letus Delete! tid=%d, seq=%d, key=%s(%s)\n", s.tid, seq, string(key), string(sha1key))
+	s.logger.Infof("Letus Delete! tid=%d, seq=%d, key=%s(%s)\n", s.tid, seq, string(key), string(sha1key))
 	return nil 
 }
 
 func (s* LetusKVStorage) Revert(seq_ uint64) error {
 	seq := seq_ + 1 
-	fmt.Println("Letus revert! version=", seq)
+	s.logger.Infof("Letus revert! version=%d\n", seq)
 	C.LetusRevert(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
 	s.stable_seq_no = seq_
-	s.current_seq_no = seq_ + 1
+	s.current_seq_no = seq_
 	return nil 
 }
 
 func (s* LetusKVStorage) CalcRootHash(seq_ uint64) error { 
 	seq := seq_ + 1
-	fmt.Println("Letus calculate root hash! version=", seq)
+	s.logger.Infof("Letus calculate root hash! version=%d\n", seq)
 	C.LetusCalcRootHash(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
 	return nil 
 }
 
 func (s* LetusKVStorage) Write(seq_ uint64) error { 
 	seq := seq_ + 1
-	fmt.Println("Letus flush! version=", seq)
+	s.logger.Infof("Letus flush! version=%d\n", seq)
 	C.LetusFlush(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
 	s.current_seq_no = seq_ + 1
 	return nil 
@@ -108,14 +112,14 @@ func (s* LetusKVStorage) Write(seq_ uint64) error {
 
 func (s* LetusKVStorage) Commit(seq_ uint64) error { 
 	seq := seq_ + 1
-	fmt.Println("Letus commit! version=", seq)
+	s.logger.Infof("Letus commit! version=%d\n", seq)
 	C.LetusFlush(s.c, C.uint64_t(s.tid), C.uint64_t(seq))
 	s.stable_seq_no = seq_
 	return nil 
 }
 
 func (s *LetusKVStorage) Close() error {
-	fmt.Println("close Letus!")
+	s.logger.Infof("close Letus!")
 	return nil 
 }
 
@@ -179,7 +183,7 @@ type LetusConfig struct {
 }
 
 
-func GetDefaultConfig() *LetusConfig {
+func GetDefaultConfig() VidbConfigInterface {
 	DefaultSync := false
 	DefaultEncryption := false
 	DefaultCheckInterval := uint64(100)
@@ -197,6 +201,30 @@ func GetDefaultConfig() *LetusConfig {
 	}
 }
 
-func (v LetusConfig) GetDataPath() string {
+func (v *LetusConfig) Sync() bool{
+	return v.sync
+}
+
+func (v *LetusConfig) VidbDataPath() string {
 	return v.DataPath
+}
+
+func (v *LetusConfig) CompressEnable() bool {
+	return v.Compress
+}
+
+func (v *LetusConfig) GetBucketMode() bool {
+	return v.BucketMode
+}
+
+func (v *LetusConfig) GetEncrypt() bool {
+	return v.Encrypt
+}
+
+func (v *LetusConfig) GetCheckInterval() uint64 {
+	return v.CheckInterval
+}
+
+func (v *LetusConfig) GetVlogSize() uint64 {
+	return v.VlogSize
 }
